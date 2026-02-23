@@ -86,4 +86,4 @@ Speaker_Recognition/
 1. Cài đặt thư viện: ```pip install -r requirements.txt```
 2. Chạy file số 1 để cắt âm thanh: `python 1_preprocess.py`
 3. Chạy file số 2 để huấn luyện mô hình: `python 2_train_model.py`
-4. Chạy file số 3 để kiểm thử: `python 3_predict.py`
+4. Chạy file số 3 để kiểm thử: `python 3_predict.py` 
