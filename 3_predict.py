@@ -55,6 +55,9 @@ def predict_with_both_models(audio_path):
             print("[-] Lỗi: File quá ngắn hoặc hỏng.")
             return
 
+        np.set_printoptions(threshold=np.inf, suppress=True)  # Ép numpy in toàn bộ, không dùng dấu ...
+        print(raw_features)
+
         features_scaled = scaler.transform(raw_features.reshape(1, -1))
 
         svm_pred = svm_model.predict(features_scaled)[0]
@@ -81,7 +84,7 @@ def predict_with_both_models(audio_path):
 
 
 if __name__ == "__main__":
-    test_audio_file = "data/processed/recording.wav"
+    test_audio_file = "data/processed/recording5.wav"
 
     if os.path.exists(test_audio_file):
         predict_with_both_models(test_audio_file)

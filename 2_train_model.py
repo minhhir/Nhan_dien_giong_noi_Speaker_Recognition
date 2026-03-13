@@ -2,12 +2,13 @@ import os
 import numpy as np
 import librosa
 import pickle
+import pandas as pd
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 PROCESSED_DATA_DIR = "data/processed"
 MODEL_DIR = "models"
@@ -18,7 +19,7 @@ def extract_mfcc(file_path):
     try:
         y, sr = librosa.load(file_path, sr=TARGET_SR)
 
-        #chia thành 0.25s đẻ có 4000 mẫu cho MFCC
+        # chia thành 0.25s để có 4000 mẫu cho MFCC
         if len(y) < sr * 0.25:
             return None
 
@@ -62,23 +63,42 @@ if __name__ == "__main__":
     X, y = load_data()
     print(f"\n[+] Dữ liệu sẵn sàng: {X.shape[0]} mẫu âm thanh (240 đặc trưng).")
 
+    df_mfcc = pd.DataFrame(X)
+    df_mfcc['Label'] = y # Thêm cột nhãn vào cuối
+    csv_filename = "mfcc_features_dataset.csv"
+    df_mfcc.to_csv(csv_filename, index=False)
+    print(f" '{csv_filename}' để xem.\n")
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
-    print("\n Training SVM...")
+    print(" Training SVM...")
     svm_model = SVC(kernel='linear', probability=True)
     svm_model.fit(X_train_scaled, y_train)
-    svm_acc = accuracy_score(y_test, svm_model.predict(X_test_scaled))
-    print(f"Độ chính xác SVM: {svm_acc * 100:.2f}%")
 
-    print("Training KNN...")
+    #  SVM
+    svm_y_pred = svm_model.predict(X_test_scaled)
+    print(f"Độ chính xác SVM (Accuracy): {accuracy_score(y_test, svm_y_pred) * 100:.2f}%\n")
+    print("SVM: Confusion Matrix ")
+    print(confusion_matrix(y_test, svm_y_pred))
+    print("\nSVM")
+    print(classification_report(y_test, svm_y_pred))
+
+    print("\n Training KNN...")
     knn_model = KNeighborsClassifier(n_neighbors=3)
     knn_model.fit(X_train_scaled, y_train)
-    knn_acc = accuracy_score(y_test, knn_model.predict(X_test_scaled))
-    print(f"Độ chính xác KNN: {knn_acc * 100:.2f}%")
+
+    # KNN
+    knn_y_pred = knn_model.predict(X_test_scaled)
+    print(f"Độ chính xác KNN (Accuracy): {accuracy_score(y_test, knn_y_pred) * 100:.2f}%\n")
+    print(" KNN: Confusion Matrix ")
+    print(confusion_matrix(y_test, knn_y_pred))
+    print("\n KNN")
+    print(classification_report(y_test, knn_y_pred))
+
 
     os.makedirs(MODEL_DIR, exist_ok=True)
 
